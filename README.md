@@ -353,4 +353,4 @@ python contextcompressor.py clear-cache
 
 ---
 
-**Built with ❤️ by Team Brain to reduce token costs and improve AI efficiency.**
+**Built with ❤️ by Randell Logan Smith and Team Brain to reduce token costs and improve AI efficiency.**
