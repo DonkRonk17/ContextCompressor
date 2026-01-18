@@ -1,3 +1,5 @@
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/aadafab7-1d7f-4a01-ba2e-c32a9ac42a39" />
+
 # ContextCompressor v1.0
 
 **Smart Context Reduction for AI Agents**
@@ -323,6 +325,9 @@ pip install .
 MIT License - see [LICENSE](LICENSE) for details.
 
 ---
+
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/a673ab67-f060-428b-b750-4361accd70bf" />
+
 
 ## 🤝 **Contributing**
 
