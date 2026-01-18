@@ -366,4 +366,4 @@ Part of the HMSS (Heavenly Morning Star System) ecosystem.
 
 ---
 
-** Our goal is to reduce token costs and improve AI efficiency.**
+**Our goal is to reduce token costs and improve AI efficiency.**
