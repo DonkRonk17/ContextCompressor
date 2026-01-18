@@ -353,4 +353,12 @@ python contextcompressor.py clear-cache
 
 ---
 
-**Built with ❤️ by Randell Logan Smith and Team Brain to reduce token costs and improve AI efficiency.**
+## 🙏 Credits
+
+Created by **Randell Logan Smith and Team Brain** at [Metaphy LLC](https://metaphysicsandcomputing.com)
+
+Part of the HMSS (Heavenly Morning Star System) ecosystem.
+
+---
+
+** Our goal is to reduce token costs and improve AI efficiency.**
