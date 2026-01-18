@@ -1,0 +1,2 @@
+# No external dependencies required
+# ContextCompressor uses only Python standard library
