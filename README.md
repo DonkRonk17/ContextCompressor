@@ -1,3 +1,5 @@
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/aadafab7-1d7f-4a01-ba2e-c32a9ac42a39" />
+
 # ContextCompressor v1.0
 
 **Smart Context Reduction for AI Agents**
@@ -324,6 +326,9 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/a673ab67-f060-428b-b750-4361accd70bf" />
+
+
 ## 🤝 **Contributing**
 
 This tool was built by **Team Brain (Atlas)** as part of the Q-Mode tooling initiative to optimize AI agent efficiency.
@@ -353,4 +358,12 @@ python contextcompressor.py clear-cache
 
 ---
 
-**Built with ❤️ by Team Brain to reduce token costs and improve AI efficiency.**
+## 🙏 Credits
+
+Created by **Randell Logan Smith and Team Brain** at [Metaphy LLC](https://metaphysicsandcomputing.com)
+
+Part of the HMSS (Heavenly Morning Star System) ecosystem.
+
+---
+
+**Our goal is to reduce token costs and improve AI efficiency.**
