@@ -1,0 +1,72 @@
+=== CONTEXTCOMPRESSOR V1.0 - QUICK REFERENCE ===
+
+INSTANT START:
+python contextcompressor.py compress <file>
+
+COMMON COMMANDS:
+# Auto compress (best method chosen)
+python contextcompressor.py compress file.py
+
+# Find specific sections
+python contextcompressor.py compress file.py --query "login"
+
+# Summarize large file
+python contextcompressor.py compress README.md --method summary
+
+# Strip comments only
+python contextcompressor.py compress code.py --method strip
+
+# Estimate tokens
+python contextcompressor.py estimate file.py
+
+# View stats
+python contextcompressor.py stats
+
+# Clear cache
+python contextcompressor.py clear-cache
+
+PYTHON API (3 LINES):
+from contextcompressor import ContextCompressor
+compressor = ContextCompressor()
+result = compressor.compress_file("file.py", query="auth")
+
+METHODS:
+auto      - Smart selection (default)
+relevant  - Extract query matches
+summary   - Keep structure only
+strip     - Remove comments/whitespace
+
+WHAT IT DOES:
+- Reduces tokens by 50-90%
+- Saves $40-50/month
+- Zero setup required
+- Works with any text file
+
+WHEN TO USE:
+✅ Before loading large files
+✅ When searching for specific code
+✅ To review documentation
+✅ Any time you need context
+
+EXAMPLE SAVINGS:
+File: contextcompressor.py
+Before: 5,481 tokens ($0.0164)
+After: 822 tokens ($0.0025)
+Saved: 85% ($0.0139)
+
+100 uses/day = $42/month saved!
+
+INSTALLATION:
+None needed! Just run the .py file.
+
+LOCATION:
+C:\Users\logan\OneDrive\Documents\AutoProjects\ContextCompressor\
+
+GITHUB:
+https://github.com/DonkRonk17/ContextCompressor
+
+QUESTIONS?
+Check README.md or EXAMPLES.md
+Post to Synapse if stuck!
+
+--- YOUR BUDGET THANKS YOU! ---
