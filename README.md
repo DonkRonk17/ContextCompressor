@@ -1,8 +1,8 @@
 <img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/aadafab7-1d7f-4a01-ba2e-c32a9ac42a39" />
 
-# ContextCompressor v1.0
+# ContextCompressor v1.1
 
-**Smart Context Reduction for AI Agents**
+**Smart Context Reduction for AI Agents - Now with Group Mode!**
 
 ContextCompressor intelligently compresses large files and contexts to dramatically reduce token usage for AI agents. Extract only relevant sections, summarize long documents, strip unnecessary content, and track your savings.
 
@@ -100,6 +100,127 @@ python contextcompressor.py compress README.md --method summary
 # Estimate tokens before compression
 python contextcompressor.py estimate large_codebase.py
 ```
+
+---
+
+## 🆕 **GROUP MODE (v1.1)**
+
+**NEW!** Compress multi-agent conversations while preserving coordination structures.
+
+### The Problem Group Mode Solves
+
+In multi-agent AI teams (like Team Brain), conversation context degrades over time. Agents:
+- Forget @mentions they received
+- Miscount votes
+- Make claims that contradict the actual conversation history
+- Lose track of who said what when
+
+**Group Mode preserves these critical coordination structures** while still compressing the conversation.
+
+### Group Mode CLI
+
+```bash
+# Compress a multi-agent conversation
+python contextcompressor.py group session_log.md
+
+# Focus on specific agent's context
+python contextcompressor.py group session_log.md --focus FORGE
+
+# Extract just the mention graph
+python contextcompressor.py group session_log.md --mentions
+
+# Get vote tallies
+python contextcompressor.py group session_log.md --votes
+
+# Find contradictions (claims vs reality)
+python contextcompressor.py group session_log.md --contradictions
+
+# Output as JSON for programmatic use
+python contextcompressor.py group session_log.md --json
+```
+
+### Group Mode Python API
+
+```python
+from contextcompressor import ContextCompressor
+
+compressor = ContextCompressor()
+
+conversation = '''
+**FORGE:** @ATLAS please review the PR
+
+**ATLAS:** I vote for Option A. LGTM!
+
+**CLIO:** +1 for Option A. Ready to merge.
+
+**ATLAS:** I wasn't mentioned about the deadline.
+'''
+
+# Compress with full coordination tracking
+result = compressor.compress_group_conversation(conversation)
+
+# Access mention graph
+print(result.mention_graph)
+# {'FORGE': {'ATLAS': 1}}
+
+# Access vote tallies
+print(result.votes)
+# {'General': {'Option A': 2}}
+
+# Check for contradictions (ATLAS claimed not mentioned but was!)
+print(result.contradictions)
+# [Contradiction(type='mention_denial', severity='high', ...)]
+
+# Get per-agent context
+print(result.agent_contexts['ATLAS'].mentions_received)  # [0]
+print(result.agent_contexts['ATLAS'].votes_cast)  # [0]
+```
+
+### What Group Mode Tracks
+
+| Structure | Description | Use Case |
+|-----------|-------------|----------|
+| **Mention Graph** | Who @mentioned whom, how many times | Verify acknowledgment |
+| **Vote Tracking** | Vote tallies with voter details | Accurate vote counts |
+| **Claims** | Verifiable statements extracted | Fact-checking |
+| **Contradictions** | Claims vs reality mismatches | Detect errors |
+| **Timeline** | Chronological event ordering | Understand flow |
+| **Agent Contexts** | Per-agent interaction views | Agent-specific needs |
+
+### Group Mode Output Example
+
+```
+============================================================
+GROUP CONVERSATION COMPRESSION SUMMARY
+============================================================
+
+Total Messages: 4
+Participants: ATLAS, CLIO, FORGE
+Mentions: 1
+Claims: 1 (0 verified)
+Contradictions Detected: 1
+
+----------------------------------------
+MENTION GRAPH
+----------------------------------------
+  @ATLAS: 1 mentions (ack: 1/1)
+
+----------------------------------------
+VOTE TALLIES
+----------------------------------------
+  General:
+    Option A: 2 vote(s)
+
+----------------------------------------
+[!] CONTRADICTIONS DETECTED
+----------------------------------------
+  [HIGH] mention_denial:
+    Claim: I wasn't mentioned about the deadline
+    Fact: ATLAS WAS mentioned before this claim
+    Evidence: Found @ATLAS mention(s) in earlier messages
+```
+
+---
 
 ### Python API
 

@@ -1,4 +1,4 @@
-# ContextCompressor v1.0 - Integration Plan
+# ContextCompressor v1.1 - Integration Plan
 
 ## 🎯 INTEGRATION GOALS
 
@@ -8,8 +8,86 @@ This document outlines how ContextCompressor integrates with:
 3. BCH (Beacon Command Hub)
 4. Logan's workflows
 5. Automation systems (Auto Cursor Prompt, Holy Grail)
+6. **NEW: Group Mode for multi-agent conversation compression (v1.1)**
 
 **Purpose:** ContextCompressor reduces token usage by 50-90%, directly supporting the $60/mo budget target.
+
+---
+
+## 🆕 GROUP MODE INTEGRATION (v1.1)
+
+### Overview
+
+Group Mode adds multi-agent conversation compression that preserves critical coordination structures:
+- @mention graphs (who mentioned whom)
+- Vote tracking and tallies
+- Claim/fact verification
+- Contradiction detection
+- Timeline generation
+- Per-agent context views
+
+This directly addresses context degradation in high-velocity Team Brain conversations.
+
+### When to Use Group Mode
+
+| Scenario | Method | Command |
+|----------|--------|---------|
+| Single file compression | Standard | `compress file.py` |
+| Multi-agent session log | **Group Mode** | `group session.md` |
+| BCH conversation export | **Group Mode** | `group bch_export.md` |
+| Synapse message analysis | **Group Mode** | `group synapse_thread.md` |
+
+### Group Mode for BCH
+
+```
+@compress-group <session_log> [--focus AGENT] [--contradictions]
+@mentions <session_log>
+@votes <session_log>
+@verify <session_log>  # Contradiction detection
+```
+
+### Group Mode Python Integration
+
+```python
+from contextcompressor import ContextCompressor
+
+compressor = ContextCompressor()
+
+# After exporting BCH conversation
+conversation = bch_export_conversation()
+result = compressor.compress_group_conversation(
+    conversation,
+    focus_agent="FORGE"  # Optional: prioritize this agent's context
+)
+
+# Access coordination structures
+mention_graph = result.mention_graph     # Who @mentioned whom
+votes = result.votes                     # Vote tallies
+contradictions = result.contradictions   # Claims vs reality
+agent_contexts = result.agent_contexts   # Per-agent views
+
+# Check for issues
+if contradictions:
+    alert_forge(f"Found {len(contradictions)} contradictions!")
+```
+
+### Key Use Cases
+
+1. **Post-Session Analysis:**
+   - Export BCH session → Group compress → Review contradictions
+   - Identify missed @mentions, incorrect vote counts
+
+2. **Real-Time Coordination:**
+   - Compress rolling conversation window every N messages
+   - Feed compressed context back to agents
+
+3. **Session Handoffs:**
+   - Compress outgoing agent's context
+   - Provide incoming agent with coordination summary
+
+4. **Stress Test Analysis:**
+   - Process large conversation logs
+   - Identify patterns in coordination failures
 
 ---
 

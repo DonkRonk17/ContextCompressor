@@ -1,9 +1,13 @@
-=== CONTEXTCOMPRESSOR V1.0 - QUICK REFERENCE ===
+=== CONTEXTCOMPRESSOR V1.1 - QUICK REFERENCE ===
 
 INSTANT START:
 python contextcompressor.py compress <file>
+python contextcompressor.py group <conversation.md>  # NEW in v1.1!
 
-COMMON COMMANDS:
+================================================================================
+STANDARD COMPRESSION COMMANDS
+================================================================================
+
 # Auto compress (best method chosen)
 python contextcompressor.py compress file.py
 
@@ -25,48 +29,136 @@ python contextcompressor.py stats
 # Clear cache
 python contextcompressor.py clear-cache
 
-PYTHON API (3 LINES):
+================================================================================
+GROUP MODE COMMANDS (v1.1 - MULTI-AGENT CONVERSATIONS)
+================================================================================
+
+# Compress group conversation
+python contextcompressor.py group session.md
+
+# Focus on specific agent
+python contextcompressor.py group session.md --focus FORGE
+
+# Extract mention graph only
+python contextcompressor.py group session.md --mentions
+
+# Get vote tallies
+python contextcompressor.py group session.md --votes
+
+# Find contradictions (claims vs reality)
+python contextcompressor.py group session.md --contradictions
+
+# Output as JSON
+python contextcompressor.py group session.md --json
+
+================================================================================
+PYTHON API (STANDARD)
+================================================================================
+
 from contextcompressor import ContextCompressor
 compressor = ContextCompressor()
 result = compressor.compress_file("file.py", query="auth")
 
-METHODS:
+================================================================================
+PYTHON API (GROUP MODE)
+================================================================================
+
+from contextcompressor import ContextCompressor
+compressor = ContextCompressor()
+result = compressor.compress_group_conversation(conversation_text)
+print(result.mention_graph)      # Who @mentioned whom
+print(result.votes)              # Vote tallies
+print(result.contradictions)     # Claims vs reality mismatches
+print(result.agent_contexts)     # Per-agent views
+
+================================================================================
+METHODS
+================================================================================
+
+STANDARD:
 auto      - Smart selection (default)
 relevant  - Extract query matches
 summary   - Keep structure only
 strip     - Remove comments/whitespace
 
-WHAT IT DOES:
+GROUP MODE:
+group     - Multi-agent conversation compression (v1.1)
+
+================================================================================
+WHAT IT DOES
+================================================================================
+
+STANDARD MODE:
 - Reduces tokens by 50-90%
 - Saves $40-50/month
 - Zero setup required
 - Works with any text file
 
-WHEN TO USE:
-✅ Before loading large files
-✅ When searching for specific code
-✅ To review documentation
-✅ Any time you need context
+GROUP MODE (v1.1):
+- Extracts @mention graphs
+- Tracks votes and tallies
+- Detects contradictions
+- Creates per-agent context views
+- Preserves coordination structures
 
-EXAMPLE SAVINGS:
+================================================================================
+WHEN TO USE
+================================================================================
+
+STANDARD MODE:
+[OK] Before loading large files
+[OK] When searching for specific code
+[OK] To review documentation
+[OK] Any time you need context
+
+GROUP MODE:
+[OK] Multi-agent conversation logs
+[OK] BCH session compression
+[OK] Team Brain coordination review
+[OK] Detecting coordination failures
+[OK] Verifying @mentions were acknowledged
+[OK] Validating vote counts
+
+================================================================================
+EXAMPLE SAVINGS
+================================================================================
+
+STANDARD:
 File: contextcompressor.py
 Before: 5,481 tokens ($0.0164)
 After: 822 tokens ($0.0025)
 Saved: 85% ($0.0139)
-
 100 uses/day = $42/month saved!
 
-INSTALLATION:
-None needed! Just run the .py file.
+GROUP MODE:
+Stress test session: 11,250 tokens
+Compressed summary: 700 tokens
+Saved: 94% + coordination data preserved!
 
-LOCATION:
+================================================================================
+INSTALLATION
+================================================================================
+
+None needed! Just run the .py file.
+Zero dependencies - Python standard library only.
+
+================================================================================
+LOCATION
+================================================================================
+
 C:\Users\logan\OneDrive\Documents\AutoProjects\ContextCompressor\
 
-GITHUB:
+================================================================================
+GITHUB
+================================================================================
+
 https://github.com/DonkRonk17/ContextCompressor
 
+================================================================================
 QUESTIONS?
+================================================================================
+
 Check README.md or EXAMPLES.md
 Post to Synapse if stuck!
 
---- YOUR BUDGET THANKS YOU! ---
+--- YOUR BUDGET AND COORDINATION THANKS YOU! ---

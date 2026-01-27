@@ -1,6 +1,40 @@
-# ContextCompressor v1.0 - Quick Start Guides
+# ContextCompressor v1.1 - Quick Start Guides
 
 Agent-specific integration guides for fast adoption.
+
+**NEW in v1.1:** Group Mode for multi-agent conversation compression!
+
+---
+
+## 🆕 GROUP MODE QUICK START (ALL AGENTS)
+
+Group Mode compresses multi-agent conversations while preserving coordination structures:
+
+```python
+from contextcompressor import ContextCompressor
+
+compressor = ContextCompressor()
+
+# Compress group conversation
+result = compressor.compress_group_conversation(conversation_text)
+
+# Access coordination data
+print(result.mention_graph)      # Who @mentioned whom
+print(result.votes)              # Vote tallies
+print(result.contradictions)     # Claims vs reality mismatches
+```
+
+**CLI:**
+```bash
+# Full compression
+python contextcompressor.py group session.md
+
+# Just mentions
+python contextcompressor.py group session.md --mentions
+
+# Just contradictions
+python contextcompressor.py group session.md --contradictions
+```
 
 ---
 

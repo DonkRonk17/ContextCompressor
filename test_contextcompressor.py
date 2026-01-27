@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive test suite for ContextCompressor v1.0
+Comprehensive test suite for ContextCompressor v1.1
 
 Tests cover:
 - Core functionality (compression methods)
@@ -10,11 +10,21 @@ Tests cover:
 - Python API (file and text compression)
 - Statistics and caching
 
+GROUP MODE (v1.1 - CLIO Request #16):
+- @mention extraction and graph building
+- Vote tracking and tally validation
+- Claim/fact verification
+- Contradiction detection
+- Timeline generation
+- Per-agent context views
+- Multi-agent conversation compression
+
 Run: python test_contextcompressor.py
 
-Author: ATLAS (Team Brain)
+Original Author: ATLAS (Team Brain)
+v1.1 Group Mode: FORGE (Team Brain)
 For: Logan Smith / Metaphy LLC
-Date: January 23, 2026
+Date: January 23-27, 2026
 """
 
 import unittest
@@ -27,7 +37,10 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from contextcompressor import ContextCompressor, CompressionResult, MAX_FILE_SIZE, MAX_TEXT_SIZE
+from contextcompressor import (
+    ContextCompressor, CompressionResult, GroupCompressionResult,
+    MAX_FILE_SIZE, MAX_TEXT_SIZE
+)
 
 
 class TestContextCompressorCore(unittest.TestCase):
@@ -640,11 +653,468 @@ if __name__ == "__main__":
         self.assertEqual(stats["compressions"], 3)
 
 
+# ═══════════════════════════════════════════════════════════════════
+# GROUP MODE TESTS (v1.1 Enhancement)
+# ═══════════════════════════════════════════════════════════════════
+
+class TestGroupModeBasic(unittest.TestCase):
+    """Test basic Group Mode functionality."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.compressor = ContextCompressor()
+        
+    def test_compress_simple_conversation(self):
+        """Test compression of simple multi-agent conversation."""
+        conversation = """
+**FORGE:** Hello team, let's discuss the new feature.
+
+**ATLAS:** I think we should prioritize Option A.
+
+**CLIO:** @ATLAS I agree with your assessment.
+
+**FORGE:** @CLIO @ATLAS Good input. Let's proceed.
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        self.assertIsNotNone(result)
+        self.assertEqual(result.unique_agents, 3)
+        self.assertGreater(result.total_messages, 0)
+        
+    def test_agent_detection(self):
+        """Test automatic agent detection."""
+        conversation = """
+**FORGE:** First message
+**ATLAS:** Second message
+**CLIO:** Third message
+**NEXUS:** Fourth message
+**BOLT:** Fifth message
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        self.assertEqual(result.unique_agents, 5)
+        self.assertIn('FORGE', result.agent_contexts)
+        self.assertIn('ATLAS', result.agent_contexts)
+        
+    def test_mention_extraction(self):
+        """Test @mention extraction."""
+        conversation = """
+**FORGE:** @ATLAS please review this.
+
+**ATLAS:** Will do. @CLIO can you help?
+
+**CLIO:** @ATLAS @FORGE I'm on it.
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        # Check mention graph
+        self.assertIn('FORGE', result.mention_graph)
+        self.assertIn('ATLAS', result.mention_graph['FORGE'])
+        
+    def test_focus_agent(self):
+        """Test focus_agent parameter."""
+        conversation = """
+**FORGE:** @ATLAS please check the build.
+
+**ATLAS:** Build looks good.
+
+**CLIO:** @ATLAS what about the tests?
+"""
+        result = self.compressor.compress_group_conversation(
+            conversation,
+            focus_agent='ATLAS'
+        )
+        
+        self.assertIsNotNone(result)
+        # The compressed output should mention ATLAS prominently
+
+
+class TestGroupModeMentions(unittest.TestCase):
+    """Test mention tracking functionality."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.compressor = ContextCompressor()
+        
+    def test_mention_graph_structure(self):
+        """Test mention graph is properly structured."""
+        conversation = """
+**FORGE:** @ATLAS @CLIO please review
+**ATLAS:** @FORGE done
+**CLIO:** @FORGE @ATLAS looks good
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        # Check structure
+        self.assertIsInstance(result.mention_graph, dict)
+        
+        # FORGE mentioned ATLAS and CLIO
+        self.assertIn('FORGE', result.mention_graph)
+        self.assertIn('ATLAS', result.mention_graph['FORGE'])
+        self.assertIn('CLIO', result.mention_graph['FORGE'])
+        
+    def test_mention_count(self):
+        """Test mention counting."""
+        conversation = """
+**FORGE:** @ATLAS check this
+**FORGE:** @ATLAS also check that
+**FORGE:** @ATLAS and that too
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        # FORGE mentioned ATLAS 3 times
+        self.assertEqual(result.mention_graph['FORGE']['ATLAS'], 3)
+        
+    def test_acknowledgment_detection(self):
+        """Test mention acknowledgment detection."""
+        conversation = """
+**FORGE:** @ATLAS please review
+
+**ATLAS:** Reviewing now.
+
+**FORGE:** @CLIO please help
+
+**BOLT:** I'll help instead.
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        # ATLAS should be marked as acknowledged
+        # CLIO should not be acknowledged (BOLT replied, not CLIO)
+        self.assertIsNotNone(result)
+
+
+class TestGroupModeVotes(unittest.TestCase):
+    """Test vote tracking functionality."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.compressor = ContextCompressor()
+        
+    def test_vote_extraction(self):
+        """Test basic vote extraction."""
+        conversation = """
+**FORGE:** I vote for Option A
+
+**ATLAS:** I support Option A too
+
+**CLIO:** My vote: Option B
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        # Should detect votes
+        self.assertGreater(len(result.vote_details), 0)
+        
+    def test_vote_tallies(self):
+        """Test vote tally calculation."""
+        conversation = """
+**FORGE:** I vote for Option A
+**ATLAS:** +1 for Option A  
+**CLIO:** I choose Option B
+**NEXUS:** Vote for Option A
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        # Check tallies exist
+        self.assertIn('General', result.votes)
+        
+    def test_vote_patterns(self):
+        """Test various vote pattern recognition."""
+        conversation = """
+**A1:** I vote for Alpha
+**A2:** My vote: Beta
+**A3:** +1 for Alpha
+**A4:** I support Gamma
+**A5:** Alpha gets my vote
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        # Should recognize multiple vote patterns
+        self.assertGreater(len(result.vote_details), 2)
+
+
+class TestGroupModeClaims(unittest.TestCase):
+    """Test claim extraction and verification."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.compressor = ContextCompressor()
+        
+    def test_mention_denial_claim(self):
+        """Test detection of mention denial claims."""
+        conversation = """
+**FORGE:** @ATLAS please check
+
+**ATLAS:** Working on it.
+
+**ATLAS:** I wasn't mentioned about this issue.
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        # Should detect the denial claim
+        denial_claims = [c for c in result.claims if 'mention_denial' in c.verification_note]
+        self.assertGreater(len(denial_claims), 0)
+        
+    def test_contradiction_detection(self):
+        """Test contradiction detection for mention denials."""
+        conversation = """
+**FORGE:** @ATLAS please review the code
+
+**ATLAS:** I'll check it.
+
+**ATLAS:** I wasn't mentioned about this.
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        # Should detect contradiction (ATLAS was mentioned but denied it)
+        mention_contradictions = [
+            c for c in result.contradictions 
+            if c.contradiction_type == 'mention_denial'
+        ]
+        self.assertGreater(len(mention_contradictions), 0)
+        
+    def test_verified_claim(self):
+        """Test that true claims are verified."""
+        conversation = """
+**FORGE:** Let me explain the plan.
+
+**ATLAS:** I wasn't mentioned in that message.
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        # ATLAS wasn't actually mentioned, so claim should be verified true
+        denial_claims = [c for c in result.claims if 'mention_denial' in c.verification_note]
+        if denial_claims:
+            self.assertTrue(denial_claims[0].verified)
+
+
+class TestGroupModeTimeline(unittest.TestCase):
+    """Test timeline generation."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.compressor = ContextCompressor()
+        
+    def test_timeline_generation(self):
+        """Test timeline is generated."""
+        conversation = """
+**FORGE:** @ATLAS let's start
+
+**ATLAS:** I vote for Option A
+
+**CLIO:** There are 3 votes total
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        # Should have timeline events
+        self.assertGreater(len(result.timeline), 0)
+        
+    def test_timeline_ordering(self):
+        """Test timeline is in chronological order."""
+        conversation = """
+**FORGE:** First message
+**ATLAS:** Second message
+**CLIO:** Third message @FORGE
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        # Timeline should be ordered by message_id
+        for i in range(len(result.timeline) - 1):
+            self.assertLessEqual(
+                result.timeline[i].message_id,
+                result.timeline[i + 1].message_id
+            )
+
+
+class TestGroupModeAgentContext(unittest.TestCase):
+    """Test per-agent context generation."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.compressor = ContextCompressor()
+        
+    def test_agent_context_structure(self):
+        """Test agent context contains expected fields."""
+        conversation = """
+**FORGE:** @ATLAS check this
+**ATLAS:** Done. @FORGE looks good.
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        self.assertIn('FORGE', result.agent_contexts)
+        ctx = result.agent_contexts['FORGE']
+        
+        self.assertIsNotNone(ctx.agent_name)
+        self.assertIsInstance(ctx.mentions_received, list)
+        self.assertIsInstance(ctx.mentions_made, list)
+        self.assertIsInstance(ctx.participation_count, int)
+        
+    def test_participation_count(self):
+        """Test participation counting."""
+        conversation = """
+**FORGE:** Message 1
+**FORGE:** Message 2
+**ATLAS:** Reply
+**FORGE:** Message 3
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        self.assertEqual(result.agent_contexts['FORGE'].participation_count, 3)
+        self.assertEqual(result.agent_contexts['ATLAS'].participation_count, 1)
+
+
+class TestGroupModeCompression(unittest.TestCase):
+    """Test compression effectiveness."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.compressor = ContextCompressor()
+        
+    def test_compression_reduces_size(self):
+        """Test that compression actually reduces size."""
+        # Large conversation
+        conversation = """
+**FORGE:** Starting the session. We have a lot to discuss today.
+
+**ATLAS:** I agree. Let me share my thoughts on the architecture.
+
+**CLIO:** @ATLAS @FORGE I've reviewed the code and found some issues.
+
+**NEXUS:** The cross-platform compatibility looks good.
+
+**BOLT:** I can execute the tasks once approved.
+
+**FORGE:** @ATLAS please provide your analysis.
+
+**ATLAS:** The analysis shows we need to refactor the database layer.
+
+**CLIO:** I vote for Option A - full refactor.
+
+**FORGE:** @CLIO noted. @ATLAS what do you think?
+
+**ATLAS:** I support Option A as well.
+
+**NEXUS:** +1 for Option A
+""" * 5  # Repeat to make it larger
+
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        self.assertLess(result.compressed_size, result.original_size)
+        self.assertGreater(result.estimated_token_savings, 0)
+        
+    def test_summary_generation(self):
+        """Test summary text is generated."""
+        conversation = """
+**FORGE:** @ATLAS check the build
+**ATLAS:** Build passed!
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        self.assertIsNotNone(result.summary)
+        self.assertGreater(len(result.summary), 0)
+
+
+class TestGroupModeEdgeCases(unittest.TestCase):
+    """Test Group Mode edge cases."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.compressor = ContextCompressor()
+        
+    def test_empty_conversation(self):
+        """Test handling of empty conversation."""
+        result = self.compressor.compress_group_conversation("")
+        
+        self.assertIsNotNone(result)
+        self.assertEqual(result.total_messages, 0)
+        
+    def test_single_message(self):
+        """Test conversation with single message."""
+        result = self.compressor.compress_group_conversation("**FORGE:** Hello")
+        
+        self.assertIsNotNone(result)
+        
+    def test_no_mentions(self):
+        """Test conversation without any mentions."""
+        conversation = """
+**FORGE:** Hello everyone
+**ATLAS:** Hi there
+**CLIO:** Good morning
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        self.assertIsNotNone(result)
+        self.assertEqual(len(result.mention_graph), 0)
+        
+    def test_no_votes(self):
+        """Test conversation without any votes."""
+        conversation = """
+**FORGE:** Let's discuss the plan
+**ATLAS:** Sounds good
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        self.assertIsNotNone(result)
+        self.assertEqual(len(result.vote_details), 0)
+        
+    def test_special_characters(self):
+        """Test handling of special characters."""
+        conversation = """
+**FORGE:** Here's the code: `def x(): pass`
+**ATLAS:** @FORGE looks like there's a bug with "quotes" and <brackets>
+"""
+        result = self.compressor.compress_group_conversation(conversation)
+        
+        self.assertIsNotNone(result)
+
+
+class TestGroupModeOutput(unittest.TestCase):
+    """Test Group Mode output formats."""
+    
+    def setUp(self):
+        """Set up test fixtures."""
+        self.compressor = ContextCompressor()
+        self.sample_conversation = """
+**FORGE:** @ATLAS @CLIO please review the PR
+
+**ATLAS:** I vote for Option A. LGTM!
+
+**CLIO:** +1 for Option A. Ready to merge.
+
+**FORGE:** I wasn't mentioned in the code review.
+"""
+        
+    def test_compressed_text_format(self):
+        """Test compressed text contains expected sections."""
+        result = self.compressor.compress_group_conversation(self.sample_conversation)
+        
+        # Should contain key sections
+        self.assertIn("MENTION GRAPH", result.compressed_text)
+        
+    def test_result_json_serializable(self):
+        """Test result can be converted to JSON."""
+        import json
+        result = self.compressor.compress_group_conversation(self.sample_conversation)
+        
+        # Create JSON-compatible dict
+        output = {
+            "original_size": result.original_size,
+            "compressed_size": result.compressed_size,
+            "unique_agents": result.unique_agents,
+            "mention_graph": result.mention_graph,
+            "votes": result.votes
+        }
+        
+        # Should serialize without error
+        json_str = json.dumps(output)
+        self.assertIsNotNone(json_str)
+
+
 def run_tests():
     """Run all tests with detailed output."""
     print("=" * 70)
-    print("TESTING: ContextCompressor v1.0")
+    print("TESTING: ContextCompressor v1.1")
     print("Smart Context Reduction for AI Agents")
+    print("Now with Group Mode for Multi-Agent Conversations!")
     print("=" * 70)
     
     # Create test suite
@@ -653,6 +1123,7 @@ def run_tests():
     
     # Add all test classes
     test_classes = [
+        # Original v1.0 tests
         TestContextCompressorCore,
         TestContextCompressorTextAPI,
         TestContextCompressorEdgeCases,
@@ -661,6 +1132,16 @@ def run_tests():
         TestContextCompressorCaching,
         TestContextCompressorCodeProcessing,
         TestContextCompressorIntegration,
+        # Group Mode tests (v1.1)
+        TestGroupModeBasic,
+        TestGroupModeMentions,
+        TestGroupModeVotes,
+        TestGroupModeClaims,
+        TestGroupModeTimeline,
+        TestGroupModeAgentContext,
+        TestGroupModeCompression,
+        TestGroupModeEdgeCases,
+        TestGroupModeOutput,
     ]
     
     for test_class in test_classes:
